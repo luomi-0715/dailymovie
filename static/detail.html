@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>电影详情 - CineDaily</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        'brand-red': '#E50914',
+                        'dark-bg': '#0a0a0f',
+                        'card-bg': '#1a1a2e'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background: #0a0a0f;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1a1a2e;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #7c5cfc;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #5c3dce;
+        }
+        .video-container {
+            background: #000;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+        }
+        .actor-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #7c5cfc, #b47aff);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: #fff;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+        .tag-pill {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.6);
+            transition: all 0.2s ease;
+        }
+        .tag-pill:hover {
+            background: rgba(124, 92, 252, 0.2);
+            border-color: rgba(124, 92, 252, 0.3);
+            color: #fff;
+        }
+        .info-label {
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        .info-value {
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 15px;
+            font-weight: 500;
+        }
+        .btn-back {
+            transition: all 0.2s ease;
+        }
+        .btn-back:hover {
+            color: #fff;
+            transform: translateX(-2px);
+        }
+        .btn-watch {
+            background: linear-gradient(135deg, #7c5cfc, #5c3dce);
+            box-shadow: 0 6px 24px rgba(124, 92, 252, 0.3);
+            transition: all 0.25s ease;
+        }
+        .btn-watch:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 32px rgba(124, 92, 252, 0.45);
+        }
+        .btn-watch:active {
+            transform: scale(0.97);
+        }
+        .btn-trailer {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.25s ease;
+        }
+        .btn-trailer:hover {
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+        }
+        .play-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            cursor: pointer;
+        }
+        .video-container:hover .play-overlay {
+            opacity: 1;
+        }
+        .play-overlay .play-icon {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: rgba(124, 92, 252, 0.85);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: #fff;
+            transition: all 0.3s ease;
+        }
+        .play-overlay .play-icon:hover {
+            transform: scale(1.1);
+            background: rgba(124, 92, 252, 1);
+        }
+        .similar-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.25s ease;
+            cursor: pointer;
+        }
+        .similar-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(124, 92, 252, 0.3);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+        }
+        .similar-card .poster-placeholder {
+            height: 140px;
+            background: linear-gradient(135deg, #1a1a2e, #2a2a4e);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: rgba(255, 255, 255, 0.1);
+        }
+        .similar-card .similar-title {
+            padding: 12px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #fff;
+        }
+        .similar-card .similar-year {
+            padding: 0 16px 12px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.3);
+        }
+        .loading-spinner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 14px;
+        }
+        .loading-spinner i {
+            font-size: 32px;
+            margin-right: 12px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ========================================================== -->
+    <!-- 顶部导航栏                                                  -->
+    <!-- ========================================================== -->
+    <nav class="sticky top-0 z-50 bg-black/90 backdrop-blur-sm border-b border-gray-800/50 px-4 md:px-8 py-4">
+        <div class="max-w-6xl mx-auto flex items-center justify-between">
+            <a href="/" class="text-gray-400 hover:text-white flex items-center gap-2 text-sm font-medium transition-colors btn-back">
+                <i class="fas fa-arrow-left"></i> 返回推荐
+            </a>
+            <div class="flex items-center gap-1.5">
+                <span class="text-white text-lg font-bold tracking-wider">CINE</span>
+                <span class="bg-gradient-to-r from-purple-main to-[#b47aff] text-white text-xs font-semibold px-2.5 py-0.5 rounded-md">DAILY</span>
+            </div>
+            <div class="w-[90px]"></div>
+        </div>
+    </nav>
+
+    <!-- ========================================================== -->
+    <!-- 电影主要展示区                                              -->
+    <!-- ========================================================== -->
+    <main class="container mx-auto px-4 py-8 max-w-6xl">
+
+        <!-- 加载状态 -->
+        <div id="loading-state" class="loading-spinner">
+            <i class="fas fa-spinner"></i> 加载中...
+        </div>
+
+        <!-- 电影内容（默认隐藏） -->
+        <div id="movie-content" style="display: none;">
+
+            <!-- 视频播放器 -->
+            <div class="video-container relative w-full aspect-video bg-black rounded-xl overflow-hidden">
+                <video id="video-player" class="w-full h-full" controls>
+                    <source src="" type="video/mp4">
+                    您的浏览器不支持 Video 标签。
+                </video>
+                <div class="play-overlay" id="playOverlay">
+                    <div class="play-icon">
+                        <i class="fas fa-play"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========================================================== -->
+            <!-- 电影信息网格                                                -->
+            <!-- ========================================================== -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
+
+                <!-- 左列 -->
+                <div class="lg:col-span-2">
+                    <div class="flex items-start justify-between flex-wrap gap-4">
+                        <div>
+                            <h1 class="text-white text-3xl md:text-4xl font-bold" id="d-title">星际穿越</h1>
+                            <div class="flex items-center gap-3 mt-2 text-sm text-gray-400">
+                                <span id="d-year">2014</span>
+                                <span>•</span>
+                                <span id="d-duration">2h 49m</span>
+                                <span>•</span>
+                                <span class="text-yellow-400">★ <span id="d-score">9.4</span></span>
+                            </div>
+                        </div>
+                        <div class="flex gap-3 flex-shrink-0">
+                            <button class="btn-watch text-white border-none rounded-xl px-6 py-2.5 text-sm font-semibold cursor-pointer tracking-wide" id="watchNowBtn">
+                                ▶ 立即观看
+                            </button>
+                            <button class="btn-trailer text-white/70 rounded-xl px-5 py-2.5 text-sm font-medium cursor-pointer">
+                                <i class="fa-regular fa-clock"></i> 预告片
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 标签 -->
+                    <div class="flex flex-wrap gap-2 mt-4" id="d-tag-container"></div>
+
+                    <!-- 描述 -->
+                    <p class="text-gray-300 text-sm leading-relaxed mt-4 max-w-2xl" id="d-desc"></p>
+
+                    <!-- 导演 -->
+                    <div class="mt-6 flex items-center gap-4">
+                        <div>
+                            <div class="info-label">导演</div>
+                            <div class="info-value" id="d-director">-</div>
+                        </div>
+                    </div>
+
+                    <!-- 演员 -->
+                    <div class="mt-6">
+                        <div class="info-label mb-3">主演</div>
+                        <div class="flex flex-wrap gap-4" id="d-actors-container"></div>
+                    </div>
+                </div>
+
+                <!-- 右列 -->
+                <div class="bg-white/5 rounded-xl p-6 border border-white/5 h-fit">
+                    <h3 class="text-white font-semibold text-sm mb-4">📋 影片信息</h3>
+                    <div class="space-y-3 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">上映年份</span>
+                            <span class="text-gray-300" id="d-year-info">-</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">片长</span>
+                            <span class="text-gray-300" id="d-duration-info">-</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">评分</span>
+                            <span class="text-yellow-400 font-semibold" id="d-score-info">-</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">导演</span>
+                            <span class="text-gray-300" id="d-director-info">-</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">标签</span>
+                            <span class="text-gray-300 text-right" id="d-tags-info">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========================================================== -->
+            <!-- 相似推荐                                                    -->
+            <!-- ========================================================== -->
+            <div class="mt-12">
+                <h2 class="text-white text-xl font-semibold mb-4 flex items-center gap-2">
+                    <i class="fas fa-film text-purple-main"></i> 相似推荐
+                </h2>
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4" id="d-similar-container"></div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- ========================================================== -->
+    <!-- JavaScript                                                  -->
+    <!-- ========================================================== -->
+    <script>
+        // ============================================================
+        // 1. 本地备用数据（当后端 API 不可用时使用）
+        // ============================================================
+        var fallbackMovies = [{
+            id: 1,
+            title: "星际穿越 (Interstellar)",
+            year: "2014",
+            duration: "2h 49m",
+            tags: "科幻 / 冒险 / 悬疑",
+            score: 9.4,
+            desc: "在地球环境日益恶化的未来，一组探险家利用新发现的虫洞，穿越到遥远的星系寻找人类的新家园，在探索过程中他们面临着时间扭曲和未知物理现象的挑战，每一步都牵动着全人类的命运。",
+            director: "Christopher Nolan",
+            actors: ["Matthew McConaughey", "Anne Hathaway", "Jessica Chastain", "Michael Caine"],
+            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+        }, {
+            id: 2,
+            title: "盗梦空间 (Inception)",
+            year: "2010",
+            duration: "2h 28m",
+            tags: "科幻 / 悬疑 / 动作",
+            score: 9.4,
+            desc: "道姆·柯布是一位技艺高超的盗贼，他的专长是在人们梦境中窃取潜意识里的秘密。为了回家见到自己的孩子，他接受了一个看似不可能的任务：在目标人物的深层梦境中植入一个想法。",
+            director: "Christopher Nolan",
+            actors: ["Leonardo DiCaprio", "Joseph Gordon-Levitt", "Ellen Page", "Tom Hardy"],
+            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+        }, {
+            id: 3,
+            title: "超时空接触 (Contact)",
+            year: "1997",
+            duration: "2h 30m",
+            tags: "科幻 / 悬疑 / 剧情",
+            score: 8.4,
+            desc: "科学家艾莉·爱罗薇毕生致力于寻找地外文明，当她接收到来自织女星的信号并成功解码，她获得了一个可能改变人类命运的星际旅行机会。",
+            director: "Robert Zemeckis",
+            actors: ["Jodie Foster", "Matthew McConaughey", "Tom Skerritt", "James Woods"],
+            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+        }, {
+            id: 4,
+            title: "降临 (Arrival)",
+            year: "2016",
+            duration: "1h 56m",
+            tags: "科幻 / 剧情 / 悬疑",
+            score: 7.8,
+            desc: "十二个神秘的外星飞船降临地球，语言学家露易丝·班克斯博士受命破解外星语言。在学习过程中，她发现这种语言能改变人类的思维方式。",
+            director: "Denis Villeneuve",
+            actors: ["Amy Adams", "Jeremy Renner", "Forest Whitaker", "Michael Stuhlbarg"],
+            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+        }, {
+            id: 5,
+            title: "火星救援 (The Martian)",
+            year: "2015",
+            duration: "2h 24m",
+            tags: "科幻 / 冒险 / 剧情",
+            score: 8.5,
+            desc: "在一次火星任务中，宇航员马克·沃特尼被意外遗留在火星，成为了这颗星球上唯一的人类。他必须依靠有限的资源和植物学知识在绝境中求生。",
+            director: "Ridley Scott",
+            actors: ["Matt Damon", "Jessica Chastain", "Kristen Wiig", "Jeff Daniels"],
+            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+        }];
+
+        // ============================================================
+        // 2. DOM 引用
+        // ============================================================
+        var loadingState = document.getElementById('loading-state');
+        var movieContent = document.getElementById('movie-content');
+
+        var titleEl = document.getElementById('d-title');
+        var yearEl = document.getElementById('d-year');
+        var durationEl = document.getElementById('d-duration');
+        var scoreEl = document.getElementById('d-score');
+        var descEl = document.getElementById('d-desc');
+        var directorEl = document.getElementById('d-director');
+        var yearInfoEl = document.getElementById('d-year-info');
+        var durationInfoEl = document.getElementById('d-duration-info');
+        var scoreInfoEl = document.getElementById('d-score-info');
+        var directorInfoEl = document.getElementById('d-director-info');
+        var tagsInfoEl = document.getElementById('d-tags-info');
+        var tagsContainer = document.getElementById('d-tag-container');
+        var actorsContainer = document.getElementById('d-actors-container');
+        var similarContainer = document.getElementById('d-similar-container');
+        var videoPlayer = document.getElementById('video-player');
+        var playOverlay = document.getElementById('playOverlay');
+
+        var currentMovie = null;
+
+        // ============================================================
+        // 3. 从 URL 获取电影 ID
+        // ============================================================
+        function getMovieIdFromURL() {
+            var params = new URLSearchParams(window.location.search);
+            var id = parseInt(params.get('id'));
+            return isNaN(id) ? null : id;
+        }
+
+        // ============================================================
+        // 4. 从后端 API 获取电影数据
+        // ============================================================
+        function fetchMovieFromAPI(id) {
+            return fetch('/api/movie/' + id)
+                .then(function(response) {
+                    if (!response.ok) {
+                        throw new Error('API 返回错误: ' + response.status);
+                    }
+                    return response.json();
+                });
+        }
+
+        // ============================================================
+        // 5. 获取所有电影（用于相似推荐）
+        // ============================================================
+        function fetchAllMovies() {
+            // 由于没有 /api/movies 接口，使用备用数据
+            return new Promise(function(resolve) {
+                resolve(fallbackMovies);
+            });
+        }
+
+        // ============================================================
+        // 6. 渲染电影详情
+        // ============================================================
+        function renderMovie(movie) {
+            currentMovie = movie;
+
+            // 标题（去掉英文部分）
+            var displayTitle = movie.title;
+            var match = movie.title.match(/^(.*?)\s*\(/);
+            if (match) {
+                displayTitle = match[1].trim();
+            }
+            titleEl.textContent = displayTitle;
+
+            // 年份
+            yearEl.textContent = movie.year;
+            yearInfoEl.textContent = movie.year;
+
+            // 片长
+            var duration = movie.duration || '2h 0m';
+            durationEl.textContent = duration;
+            durationInfoEl.textContent = duration;
+
+            // 评分
+            scoreEl.textContent = movie.score;
+            scoreInfoEl.textContent = '★ ' + movie.score;
+
+            // 描述
+            descEl.textContent = movie.desc || '暂无描述';
+
+            // 导演
+            directorEl.textContent = movie.director || '未知';
+            directorInfoEl.textContent = movie.director || '未知';
+
+            // 标签
+            tagsContainer.innerHTML = '';
+            if (movie.tags) {
+                var tagList = movie.tags.split('/').map(function(t) { return t.trim(); });
+                tagList.forEach(function(tag) {
+                    var span = document.createElement('span');
+                    span.className = 'tag-pill';
+                    span.textContent = tag;
+                    tagsContainer.appendChild(span);
+                });
+                tagsInfoEl.textContent = movie.tags;
+            }
+
+            // 演员
+            actorsContainer.innerHTML = '';
+            if (movie.actors) {
+                var actorList = typeof movie.actors === 'string' ? movie.actors.split(',').map(function(a) { return a.trim(); }) : movie.actors;
+                actorList.forEach(function(actor) {
+                    var div = document.createElement('div');
+                    div.className = 'flex items-center gap-3';
+
+                    var avatar = document.createElement('div');
+                    avatar.className = 'actor-avatar';
+                    var initials = actor.split(' ').map(function(word) { return word[0]; }).join('');
+                    avatar.textContent = initials.substring(0, 2);
+
+                    var nameSpan = document.createElement('span');
+                    nameSpan.className = 'text-gray-300 text-sm';
+                    nameSpan.textContent = actor;
+
+                    div.appendChild(avatar);
+                    div.appendChild(nameSpan);
+                    actorsContainer.appendChild(div);
+                });
+            }
+
+            // 视频源（使用真实的测试视频）
+            var videoUrl = movie.videoUrl || 'https://www.w3schools.com/html/mov_bbb.mp4';
+            var source = videoPlayer.querySelector('source');
+            source.src = videoUrl;
+            videoPlayer.load();
+
+            // 显示内容，隐藏加载
+            loadingState.style.display = 'none';
+            movieContent.style.display = 'block';
+
+            // 渲染相似推荐
+            renderSimilarMovies(movie.id);
+        }
+
+        // ============================================================
+        // 7. 渲染相似推荐
+        // ============================================================
+        function renderSimilarMovies(currentId) {
+            similarContainer.innerHTML = '';
+            var similarMovies = fallbackMovies.filter(function(m) { return m.id !== currentId; });
+
+            // 随机打乱
+            for (var i = similarMovies.length - 1; i > 0; i--) {
+                var j = Math.floor(Math.random() * (i + 1));
+                var temp = similarMovies[i];
+                similarMovies[i] = similarMovies[j];
+                similarMovies[j] = temp;
+            }
+            similarMovies = similarMovies.slice(0, 5);
+
+            similarMovies.forEach(function(sim) {
+                var card = document.createElement('div');
+                card.className = 'similar-card';
+                card.onclick = function() {
+                    window.location.href = '/detail.html?id=' + sim.id;
+                };
+
+                var poster = document.createElement('div');
+                poster.className = 'poster-placeholder';
+                poster.textContent = '🎬';
+
+                var title = document.createElement('div');
+                title.className = 'similar-title';
+                var simTitle = sim.title;
+                var simMatch = sim.title.match(/^(.*?)\s*\(/);
+                if (simMatch) {
+                    simTitle = simMatch[1].trim();
+                }
+                title.textContent = simTitle;
+
+                var year = document.createElement('div');
+                year.className = 'similar-year';
+                year.textContent = sim.year + '  ★ ' + sim.score;
+
+                card.appendChild(poster);
+                card.appendChild(title);
+                card.appendChild(year);
+                similarContainer.appendChild(card);
+            });
+        }
+
+        // ============================================================
+        // 8. 播放覆盖层
+        // ============================================================
+        playOverlay.addEventListener('click', function() {
+            if (videoPlayer.paused) {
+                videoPlayer.play();
+            } else {
+                videoPlayer.pause();
+            }
+        });
+
+        videoPlayer.addEventListener('play', function() {
+            playOverlay.style.opacity = '0';
+        });
+        videoPlayer.addEventListener('pause', function() {
+            playOverlay.style.opacity = '1';
+        });
+        videoPlayer.addEventListener('ended', function() {
+            playOverlay.style.opacity = '1';
+        });
+
+        // ============================================================
+        // 9. "立即观看" 按钮
+        // ============================================================
+        document.getElementById('watchNowBtn').addEventListener('click', function() {
+            if (currentMovie) {
+                alert('🎬 即将播放：' + currentMovie.title + '\n导演：' + currentMovie.director);
+            }
+        });
+
+        // ============================================================
+        // 10. 主流程：加载电影
+        // ============================================================
+        function loadMovie() {
+            var movieId = getMovieIdFromURL();
+
+            if (movieId === null) {
+                // 没有 ID，默认显示第一部
+                movieId = 1;
+            }
+
+            fetchMovieFromAPI(movieId)
+                .then(function(movie) {
+                    renderMovie(movie);
+                })
+                .catch(function(error) {
+                    console.warn('后端 API 不可用，使用备用数据:', error);
+                    // 从备用数据中查找
+                    var fallback = fallbackMovies.find(function(m) { return m.id === movieId; });
+                    if (!fallback) {
+                        fallback = fallbackMovies[0];
+                    }
+                    renderMovie(fallback);
+                });
+        }
+
+        // ============================================================
+        // 11. 启动
+        // ============================================================
+        loadMovie();
+        window.scrollTo(0, 0);
+
+        console.log('🎬 电影详情页已加载');
+    </script>
+
+</body>
+</html>
