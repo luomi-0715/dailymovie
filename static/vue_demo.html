@@ -3,6 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vue 3 计数器示例（改进版）</title>
+    <title>Vue 3 计数器示例</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 </head>
+<body>
+    <div id="app">
+        <h1>计数器: {{count}}</h1>
+        <button @click="increment"> + </button>
+        <button @click="decrement"> - </button>
+    </div>
+    <script>
+        const { createApp, ref, onMounted } = Vue;
+
+        createApp({
+            setup() {
+                const count = ref(0)
+                const increment = ()=>{
+                    count.value++;
+                }
+                const decrement = ()=>{
+                    if (count.value > 0){
+                         count.value--;
+                    }
+                    else{
+                        alert('不能小于0')
+                    }
+
+                }
+            // ... 所有的逻辑都写在这里 ...
+                return {count, increment, decrement}; // 把数据暴露给 HTML 使用
+            }
+        }).mount('#app');
+    </script>
+</body>

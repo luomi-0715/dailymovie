@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CineDaily - 每日推荐</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script>
@@ -100,239 +101,118 @@
         }
     </style>
 </head>
-<body class="h-screen w-screen overflow-hidden">
+<body>
+   <div id="app" class="h-screen w-screen overflow-hidden">
 
-    <!-- ========================================================== -->
-    <!-- 背景层（双图层交叉淡入切换）                                -->
-    <!-- ========================================================== -->
-    <div id="bg-layer-1" class="bg-layer bg-layer-1"></div>
-    <div id="bg-layer-2" class="bg-layer bg-layer-2"></div>
+        <!-- ========================================================== -->
+        <!-- 背景层（双图层交叉淡入切换）                                -->
+        <!-- ========================================================== -->
+        <div id="bg-layer-1" class="bg-layer bg-layer-1"
+        :style="currentMovie.bg ? { backgroundImage:'url('+ currentMovie.bg +')'}: {}"></div>
 
-    <!-- 遮罩层 -->
-    <div class="overlay-gradient"></div>
-    <div class="overlay-bottom"></div>
 
-    <!-- ========================================================== -->
-    <!-- 顶部导航栏                                                  -->
-    <!-- ========================================================== -->
-    <nav class="absolute top-0 left-0 right-0 p-6 z-20 flex justify-between items-start">
-        <div class="flex items-center gap-1.5">
-            <span class="text-white text-xl font-bold tracking-wider">CINE</span>
-            <span class="logo-gradient text-white text-sm font-semibold px-2.5 py-0.5 rounded-md">DAILY</span>
-        </div>
-        <div class="flex items-center gap-3 text-white/50 text-xs">
-            <button class="hover:text-white transition-colors">4K超高清</button>
-            <button class="hover:text-white transition-colors">选集</button>
-            <button class="hover:text-white transition-colors">2.0x</button>
-            <button class="hover:text-white transition-colors">字幕</button>
-        </div>
-    </nav>
+        <!-- 遮罩层 -->
+        <div class="overlay-gradient"></div>
+        <div class="overlay-bottom"></div>
 
-    <!-- ========================================================== -->
-    <!-- 主内容区：居中布局                                          -->
-    <!-- ========================================================== -->
-    <main class="relative z-20 w-full h-full flex items-center justify-center px-8 md:px-16">
-        <div class="w-full max-w-4xl" id="movie-content">
-
-            <!-- 标签 + 评分 -->
-            <div class="flex items-center gap-4 mb-4">
-                <span id="movie-tag" class="bg-white/10 backdrop-blur-sm text-white/80 text-sm font-medium px-4 py-1.5 rounded-full border border-white/10">
-                    科幻 / 冒险
-                </span>
-                <span id="movie-score" class="text-yellow-400 font-bold text-lg">
-                    <span class="score-star"></span>9.4
-                </span>
+        <!-- ========================================================== -->
+        <!-- 顶部导航栏                                                  -->
+        <!-- ========================================================== -->
+        <nav class="absolute top-0 left-0 right-0 p-6 z-20 flex justify-between items-start">
+            <div class="flex items-center gap-1.5">
+                <span class="text-white text-xl font-bold tracking-wider">CINE</span>
+                <span class="logo-gradient text-white text-sm font-semibold px-2.5 py-0.5 rounded-md">DAILY</span>
             </div>
-
-            <!-- 标题 -->
-            <h1 id="movie-title" class="text-5xl md:text-7xl font-bold text-white leading-tight mb-4">
-                星际穿越
-            </h1>
-
-            <!-- 描述 -->
-            <p id="movie-desc" class="text-gray-300 text-base md:text-lg max-w-2xl leading-relaxed mb-8">
-                在地球环境日益恶化的未来，一组探险家利用新发现的虫洞，穿越到遥远的星系寻找人类的新家园，在探索过程中他们面临着时间扭曲和未知物理现象的挑战。
-            </p>
-
-            <!-- 按钮组 -->
-            <div class="flex gap-4">
-                <a id="btn-watch" href="#"
-                   class="bg-brand-red hover:bg-red-700 text-white font-semibold px-8 py-3 rounded-full transition-all duration-300 flex items-center gap-2 text-sm shadow-lg shadow-red-600/30 hover:shadow-red-600/50">
-                    <i class="fas fa-play"></i> 立即观看
-                </a>
-                <button onclick="nextMovie()" class="bg-white/10 hover:bg-white/20 text-white font-medium px-8 py-3 rounded-full transition-all duration-300 flex items-center gap-2 text-sm border border-white/10 backdrop-blur-sm">
-                    <i class="fas fa-random"></i> 换一个
-                </button>
+            <div class="flex items-center gap-3 text-white/50 text-xs">
+                <button class="hover:text-white transition-colors">4K超高清</button>
+                <button class="hover:text-white transition-colors">选集</button>
+                <button class="hover:text-white transition-colors">2.0x</button>
+                <button class="hover:text-white transition-colors">字幕</button>
             </div>
+        </nav>
 
-        </div>
-    </main>
+        <!-- ========================================================== -->
+        <!-- 主内容区：居中布局                                          -->
+        <!-- ========================================================== -->
+        <main class="relative z-20 w-full h-full flex items-center justify-center px-8 md:px-16">
+            <transition name="fade" mode="out-in">
+
+                <div :key="currentMovie.id" v-if="currentMovie.id !=undefined">
+
+                    <!-- 标签 + 评分 -->
+                    <div class="flex items-center gap-4 mb-4">
+                        <span id="movie-tag" class="bg-white/10 backdrop-blur-sm text-white/80 text-sm font-medium px-4 py-1.5 rounded-full border border-white/10">
+                            {{currentMovie.tags}}
+                        </span>
+                        <span id="movie-score" class="text-yellow-400 font-bold text-lg">
+                            <span class="score-star">{{currentMovie.score}}</span>
+                        </span>
+                    </div>
+
+                    <!-- 标题 -->
+                    <h1 id="movie-title" class="text-5xl md:text-7xl font-bold text-white leading-tight mb-4">
+                        {{currentMovie.title}}
+                    </h1>
+
+                    <!-- 描述 -->
+                    <p id="movie-desc" class="text-gray-300 text-base md:text-lg max-w-2xl leading-relaxed mb-8">
+                       {{currentMovie.desc}}
+                    </p>
+
+                    <!-- 按钮组 -->
+                    <div class="flex gap- 4">
+                        <a id="btn-watch" :href="'/detail.html?id=' + (currentMovie.id || 1)"
+                           class="bg-brand-red hover:bg-red-700 text-white font-semibold px-8 py-3 rounded-full transition-all duration-300 flex items-center gap-2 text-sm shadow-lg shadow-red-600/30 hover:shadow-red-600/50">
+                            <i class="fas fa-play"></i> 立即观看
+                        </a>
+                       <button @click="fetchMovie" class="bg-white/10 hover:bg-white/20 text-white font-medium px-8 py-3 rounded-full transition-all duration-300 flex items-center gap-2 text-sm border border-white/10 backdrop-blur-sm">
+                            <i class="fas fa-random" :class="{'animate-spin' : loading}"></i>
+                           {{loading ? '加载中...' : '换一个'}}
+                        </button>
+                    </div>
+
+                </div>
+            </transition>
+        </main>
+   </div>
 
     <!-- ========================================================== -->
     <!-- JavaScript                                                  -->
     <!-- ========================================================== -->
     <script>
-        // ============================================================
-        // 1. 电影数据
-        // ============================================================
-        const movies = [
-            {
-                id: 1,
-                title: "星际穿越",
-                tag: "科幻 / 冒险 / 悬疑",
-                score: "9.4",
-                desc: "在地球环境日益恶化的未来，一组探险家利用新发现的虫洞，穿越到遥远的星系寻找人类的新家园，在探索过程中他们面临着时间扭曲和未知物理现象的挑战。",
-                bg: "https://images.unsplash.com/photo-1536440133?w=1920&q=80"
-            },
-            {
-                id: 2,
-                title: "盗梦空间",
-                tag: "科幻 / 悬疑 / 动作",
-                score: "9.4",
-                desc: "道姆·柯布是一位技艺高超的盗贼，他的专长是在人们梦境中窃取潜意识里的秘密。为了回家见到自己的孩子，他接受了一个看似不可能的任务。",
-                bg: "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=1920&q=80"
-            },
-            {
-                id: 3,
-                title: "超时空接触",
-                tag: "科幻 / 悬疑 / 剧情",
-                score: "8.4",
-                desc: "科学家艾莉·爱罗薇毕生致力于寻找地外文明，当她接收到来自织女星的信号并成功解码，她获得了一个可能改变人类命运的星际旅行机会。",
-                bg: "https://images.unsplash.com/photo-1504333638930-c8787321eee0?w=1920&q=80"
-            },
-            {
-                id: 4,
-                title: "降临",
-                tag: "科幻 / 剧情 / 悬疑",
-                score: "7.8",
-                desc: "十二个神秘的外星飞船降临地球，语言学家露易丝·班克斯博士受命破解外星语言。在学习过程中，她发现这种语言能改变人类的思维方式。",
-                bg: "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=1920&q=80"
-            },
-            {
-                id: 5,
-                title: "火星救援",
-                tag: "科幻 / 冒险 / 剧情",
-                score: "8.5",
-                desc: "在一次火星任务中，宇航员马克·沃特尼被意外遗留在火星，成为了这颗星球上唯一的人类。他必须依靠有限的资源和植物学知识在绝境中求生。",
-                bg: "https://images.unsplash.com/photo-1614728263952-84ea256f9679?w=1920&q=80"
+        const { createApp, ref, onMounted } = Vue;
+
+        createApp({
+            setup() {
+                const currentMovie = ref({});
+                const loading =ref(false);
+                //定义获取随机电影方法
+                const fetchMovie = async ()=>{
+                    loading.value = true;
+                    try {
+                        const res = await fetch('/api/movie/random');
+                        const date = await res.json();
+
+                        setTimeout(()=>{
+                            currentMovie.value = date;
+                            loading.value = false;
+                        },300)
+                        console.log(date)
+                    }catch (error){
+                        console.log('电影信息获取失败:',error)
+                        loading.value = false;
+                    }
+                };
+                //页面加载是执行fetchMovie
+                onMounted(()=>{
+                    fetchMovie();
+                });
+
+
+            // ... 所有的逻辑都写在这里 ...
+                return {currentMovie, loading, fetchMovie}; // 把数据暴露给 HTML 使用
             }
-        ];
-
-        // ============================================================
-        // 2. 当前电影索引
-        // ============================================================
-        let currentIndex = 0;
-
-        // ============================================================
-        // 3. DOM 元素缓存
-        // ============================================================
-        const dom = {
-            bg1: document.getElementById('bg-layer-1'),
-            bg2: document.getElementById('bg-layer-2'),
-            content: document.getElementById('movie-content'),
-            title: document.getElementById('movie-title'),
-            tag: document.getElementById('movie-tag'),
-            score: document.getElementById('movie-score'),
-            desc: document.getElementById('movie-desc'),
-            btnWatch: document.getElementById('btn-watch')
-        };
-
-        // ============================================================
-        // 4. 更新 UI 函数
-        // ============================================================
-        function updateUI(movie) {
-            dom.title.textContent = movie.title;
-            dom.tag.textContent = movie.tag;
-            dom.score.innerHTML = '<span class="score-star"></span>' + movie.score;
-            dom.desc.textContent = movie.desc;
-            dom.btnWatch.href = 'detail.html?id=' + movie.id;
-        }
-
-        // ============================================================
-        // 5. 背景切换函数（双图层交叉淡入）
-        // ============================================================
-        let isTransitioning = false;
-
-        function switchBackground(newBg) {
-            if (isTransitioning) return;
-            isTransitioning = true;
-
-            // 判断当前哪个图层是激活的
-            const isLayer1Active = dom.bg1.style.opacity !== '0';
-            const activeLayer = isLayer1Active ? dom.bg1 : dom.bg2;
-            const inactiveLayer = isLayer1Active ? dom.bg2 : dom.bg1;
-
-            // 预加载图片
-            const img = new Image();
-            img.onload = function() {
-                // 图片加载完成后设置到非激活图层
-                inactiveLayer.style.backgroundImage = 'url(' + newBg + ')';
-                inactiveLayer.style.opacity = '1';
-                activeLayer.style.opacity = '0';
-
-                setTimeout(function() {
-                    isTransitioning = false;
-                }, 800);
-            };
-            img.onerror = function() {
-                // 如果图片加载失败，直接切换（降级方案）
-                inactiveLayer.style.backgroundImage = 'url(' + newBg + ')';
-                inactiveLayer.style.opacity = '1';
-                activeLayer.style.opacity = '0';
-
-                setTimeout(function() {
-                    isTransitioning = false;
-                }, 800);
-            };
-            img.src = newBg;
-        }
-
-        // ============================================================
-        // 6. 切换到下一部电影
-        // ============================================================
-        function nextMovie() {
-            if (isTransitioning) return;
-
-            // 计算下一个索引
-            currentIndex = (currentIndex + 1) % movies.length;
-            const nextM = movies[currentIndex];
-
-            // 内容淡出
-            dom.content.classList.remove('fade-enter-done');
-            dom.content.classList.add('fade-enter');
-
-            // 切换背景
-            switchBackground(nextM.bg);
-
-            // 延迟更新内容（等待背景过渡完成）
-            setTimeout(function() {
-                updateUI(nextM);
-                dom.content.classList.remove('fade-enter');
-                dom.content.classList.add('fade-enter-done');
-            }, 500);
-        }
-
-        // ============================================================
-        // 7. 初始化
-        // ============================================================
-        // 设置初始背景
-        dom.bg1.style.backgroundImage = 'url(' + movies[0].bg + ')';
-        dom.bg1.style.opacity = '1';
-        dom.bg2.style.opacity = '0';
-
-        // 渲染初始电影
-        updateUI(movies[0]);
-
-        // 键盘快捷键：空格键换一个
-        document.addEventListener('keydown', function(e) {
-            if (e.code === 'Space' && !e.repeat) {
-                e.preventDefault();
-                nextMovie();
-            }
-        });
-
-        console.log('🎬 CINEDAILY 已启动！');
-        console.log('💡 点击 "换一个" 或按 空格键 切换电影');
+        }).mount('#app');
     </script>
 
 </body>
