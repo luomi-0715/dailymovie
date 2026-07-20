@@ -15,7 +15,8 @@
                     colors: {
                         'brand-red': '#E50914',
                         'dark-bg': '#0a0a0f',
-                        'card-bg': '#1a1a2e'
+                        'card-bg': '#1a1a2e',
+                        'purple-main': '#7c5cfc'
                     }
                 }
             }
@@ -190,7 +191,6 @@
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
         }
-        /* 过渡动画 */
         .fade-enter-active {
             transition: opacity 0.3s ease;
         }
@@ -199,6 +199,25 @@
         }
         .fade-enter-to {
             opacity: 1;
+        }
+        /* 信息卡片 - 极简风格 */
+        .info-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            padding: 14px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .info-card .label {
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 13px;
+        }
+        .info-card .value {
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 14px;
+            font-weight: 500;
         }
     </style>
 </head>
@@ -253,8 +272,9 @@
                 <!-- ========================================================== -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
 
-                    <!-- 左列 -->
+                    <!-- 左列（主要内容） -->
                     <div class="lg:col-span-2">
+                        <!-- 标题 + 按钮 -->
                         <div class="flex items-start justify-between flex-wrap gap-4">
                             <div>
                                 <h1 class="text-white text-3xl md:text-4xl font-bold">{{ displayTitle }}</h1>
@@ -304,30 +324,21 @@
                         </div>
                     </div>
 
-                    <!-- 右列 -->
-                    <div class="bg-white/5 rounded-xl p-6 border border-white/5 h-fit">
-                        <h3 class="text-white font-semibold text-sm mb-4">📋 影片信息</h3>
-                        <div class="space-y-3 text-sm">
-                            <div class="flex justify-between">
-                                <span class="text-gray-400">上映年份</span>
-                                <span class="text-gray-300">{{ movie.year }}</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-400">片长</span>
-                                <span class="text-gray-300">{{ movie.duration || '2h 0m' }}</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-400">评分</span>
-                                <span class="text-yellow-400 font-semibold">★ {{ movie.score }}</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-400">导演</span>
-                                <span class="text-gray-300">{{ movie.director || '未知' }}</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-400">标签</span>
-                                <span class="text-gray-300 text-right">{{ movie.tags }}</span>
-                            </div>
+                    <!-- 右列（只显示补充信息：片长） -->
+                    <div class="space-y-3">
+                        <!-- 片长（左侧没有的补充信息） -->
+                        <div class="info-card">
+                            <span class="label">片长</span>
+                            <span class="value">{{ movie.duration || '2h 0m' }}</span>
+                        </div>
+                        <!-- 可以在这里添加更多左侧没有的信息 -->
+                        <div class="info-card" style="opacity:0.4; border-style:dashed;">
+                            <span class="label">语言</span>
+                            <span class="value">英语</span>
+                        </div>
+                        <div class="info-card" style="opacity:0.4; border-style:dashed;">
+                            <span class="label">地区</span>
+                            <span class="value">美国</span>
                         </div>
                     </div>
                 </div>
@@ -462,7 +473,6 @@
                 const similarMovies = computed(() => {
                     if (!movie.value) return [];
                     const list = fallbackMovies.filter(m => m.id !== movie.value.id);
-                    // 随机打乱取前5个
                     const shuffled = [...list];
                     for (let i = shuffled.length - 1; i > 0; i--) {
                         const j = Math.floor(Math.random() * (i + 1));
@@ -480,13 +490,11 @@
                             movie.value = await res.json();
                         } else {
                             console.error('电影未找到');
-                            // 使用备用数据
                             const fallback = fallbackMovies.find(m => m.id === id);
                             movie.value = fallback || fallbackMovies[0];
                         }
                     } catch (error) {
                         console.error('请求出错', error);
-                        // 使用备用数据
                         const fallback = fallbackMovies.find(m => m.id === id);
                         movie.value = fallback || fallbackMovies[0];
                     } finally {
@@ -541,7 +549,6 @@
                     if (id) {
                         fetchMovie(id);
                     } else {
-                        // 没有 ID，显示第一部
                         fetchMovie(1);
                     }
                 });
