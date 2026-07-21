@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 import sqlite3
 
 app = FastAPI()
@@ -8,12 +9,11 @@ app = FastAPI()
 def get_db_connection():
     """连接数据库"""
     connection = sqlite3.connect('movies.db')
-    connection.row_factory = sqlite3.Row  # row['id']
+    connection.row_factory = sqlite3.Row
     return connection
 
 
 def format_movie(movie_row):
-    # 处理actors字段
     movie_dict = dict(movie_row)
     if movie_dict.get('actors'):
         movie_dict['actors'] = movie_dict['actors'].split(',')
@@ -22,9 +22,8 @@ def format_movie(movie_row):
 
 @app.get('/api/movie/random')
 async def get_random_movie():
-    # 从sqlite中随机筛选一条记录
     connection = get_db_connection()
-    random_sql = "SELECT *FROM movies ORDER BY RANDOM() LIMIT 1"
+    random_sql = "SELECT * FROM movies ORDER BY RANDOM() LIMIT 1"
     movie = connection.execute(random_sql).fetchone()
     connection.close()
     if not movie:
@@ -35,7 +34,7 @@ async def get_random_movie():
 @app.get('/api/movie/{movie_id}')
 async def get_movie_by_id(movie_id: int):
     connection = get_db_connection()
-    fetch_sql = "SELECT *FROM movies where id = ?"
+    fetch_sql = "SELECT * FROM movies where id = ?"
     movie = connection.execute(fetch_sql, (movie_id,)).fetchone()
     connection.close()
     if not movie:
@@ -43,4 +42,16 @@ async def get_movie_by_id(movie_id: int):
     return format_movie(movie)
 
 
-app.mount("/", StaticFiles(directory='static', html=True), name='static')
+# ========== 新增：前端页面路由 ==========
+@app.get("/")
+async def serve_index():
+    return FileResponse("static/index.html")
+
+
+@app.get("/detail.html")
+async def serve_detail():
+    return FileResponse("static/detail.html")
+
+
+# ========== 静态文件挂载 ==========
+app.mount("/static", StaticFiles(directory="static"), name="static")
