@@ -58,9 +58,12 @@ def init_database():
 
 init_database()
 
+# ========== 创建 FastAPI 应用（必须放在所有 @app.get 之前） ==========
+app = FastAPI()
 
+
+# ========== 数据库连接函数 ==========
 def get_db_connection():
-    """连接数据库"""
     connection = sqlite3.connect('movies.db')
     connection.row_factory = sqlite3.Row
     return connection
@@ -73,6 +76,7 @@ def format_movie(movie_row):
     return movie_dict
 
 
+# ========== API 接口 ==========
 @app.get('/api/movie/random')
 async def get_random_movie():
     connection = get_db_connection()
@@ -95,7 +99,7 @@ async def get_movie_by_id(movie_id: int):
     return format_movie(movie)
 
 
-# ========== 新增：前端页面路由 ==========
+# ========== 前端页面路由 ==========
 @app.get("/")
 async def serve_index():
     return FileResponse("static/index.html")
